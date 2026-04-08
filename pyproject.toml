@@ -3,4 +3,10 @@ name = "email-triage-env"
 version = "0.1.0"
 description = "Bilingual (EN/Hinglish) email triage RL environment built on OpenEnv"
 requires-python = ">=3.10"
-dependencies = ["openenv-core", "pydantic"]
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pydantic"
+]
+[project.scripts]
+server = "app:main"
