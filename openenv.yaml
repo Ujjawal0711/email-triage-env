@@ -1,0 +1,9 @@
+name: email-triage-env
+version: 0.1.0
+description: >
+  A bilingual (English + Hinglish) email triage environment where agents
+  learn to classify emails by category and priority. Built for the
+  Meta x SST PyTorch Hackathon 2026.
+categories: [workflow, nlp, multi-lingual]
+action: EmailTriageAction
+observation: EmailTriageObservation
