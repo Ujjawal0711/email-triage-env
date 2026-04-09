@@ -5,7 +5,7 @@ from server.email_triage_env import EmailTriageEnvironment
 API_BASE_URL = os.getenv("API_BASE_URL", "local")
 MODEL_NAME = os.getenv("MODEL_NAME", "rule-based")
 TASK_NAME = "email-triage"
-BENCHMARK = "custom-env"
+BENCHMARK = "v1"
 
 env = EmailTriageEnvironment()
 
@@ -28,7 +28,7 @@ while not done and steps < 5:
 
     print(
         f"[STEP] step={steps} action={action} "
-        f"reward={reward:.2f} done={str(done).lower()} error=null"
+        f"reward={reward:.2f} done={str(done).lower()} error=None"
     )
 
 # compute score (normalized)
@@ -38,9 +38,9 @@ score = max(0.0, min(score, 1.0))
 
 success = done
 
-rewards_str = ",".join(f"{r:.2f}" for r in rewards)
+rewards_str = "[" + ",".join(f"{r:.2f}" for r in rewards) + "]"
 
 print(
-    f"[END] success={str(success).lower()} "
+    f"[END] success={str(success)} "
     f"steps={steps} score={score:.2f} rewards={rewards_str}"
 )
