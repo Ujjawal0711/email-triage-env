@@ -25,7 +25,6 @@ def reset():
     return {"observation": env.reset()}
 
 
-# ✅ HYBRID SAFE + UI FRIENDLY
 @app.post("/step")
 async def step(req: StepRequest, request: Request):
     try:
