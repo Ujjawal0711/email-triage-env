@@ -23,3 +23,11 @@ Reward Function
 +0.5: Partial success (correct category OR correct priority).
 
 -1.0: Incorrect classification.
+
+## Tasks
+
+This environment consists of three sequential decision-making tasks:
+
+1. Email Analysis
+2. Category Classification
+3. Priority Assignment and Resolution
