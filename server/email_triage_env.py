@@ -15,7 +15,7 @@ class EmailTriageEnvironment:
     def __init__(self):
         self.current_email = None
         self.state = None
-        self.total_reward = 0
+        self.total_reward = 0.0
         self.episodes = 0
         self.max_steps = 5
 
@@ -37,36 +37,42 @@ class EmailTriageEnvironment:
         return self._get_obs()
 
     def step(self, action):
-        if self.current_email is None or self.state is None:
-            self.reset()
-            return self._get_obs(), 0.0, False
-
         try:
-            # normalize
+            # --- ensure env initialized ---
+            if self.current_email is None or self.state is None:
+                self.reset()
+
+            # --- normalize input ---
             if isinstance(action, dict):
                 action = action.get("action")
 
-            if not isinstance(action, str):
-                return self._get_obs(), -1.0, False
+            if not isinstance(action, str) or action.strip() == "":
+                return self._safe_return(-0.1, False)
 
-            if self.state["done"]:
-                return self._get_obs(), 0.0, True
+            if self.state.get("done"):
+                return self._safe_return(0.0, True)
 
             reward = -0.05
 
-            # step limit
+            # --- step limit ---
             if self.state["step_count"] >= self.max_steps:
                 self.state["done"] = True
-                return self._get_obs(), reward - 1.0, True
+                return self._safe_return(-1.0, True)
 
-            # penalties
+            valid_actions = self._get_valid_actions()
+
+            # --- invalid action ---
+            if action not in valid_actions:
+                return self._safe_return(-0.1, False)
+
+            # --- penalties for wrong order ---
             if action.startswith("classify") and not self.state["analyzed"]:
                 reward -= 0.7
 
             if action.startswith("set_priority") and self.state["category"] is None:
                 reward -= 0.7
 
-            # analyze
+            # --- analyze ---
             if action == "analyze":
                 if not self.state["analyzed"]:
                     self.state["analyzed"] = True
@@ -89,23 +95,21 @@ class EmailTriageEnvironment:
                 else:
                     reward -= 0.2
 
-            # classify
+            # --- classify ---
             elif action.startswith("classify"):
-                if self.state["analyzed"]:
-                    pred = action.split("_")[1] if "_" in action else None
-                    if pred:
-                        self.state["category"] = pred
-                        reward += 0.5 if pred == self.true_category else -0.5
+                pred = action.split("_")[1] if "_" in action else None
+                if pred:
+                    self.state["category"] = pred
+                    reward += 0.5 if pred == self.true_category else -0.5
 
-            # priority
+            # --- set priority ---
             elif action.startswith("set_priority"):
-                if self.state["category"] is not None:
-                    pr = action.split("_")[-1] if "_" in action else None
-                    if pr:
-                        self.state["priority"] = pr
-                        reward += 0.5 if pr == self.true_priority else -0.3
+                pr = action.split("_")[-1] if "_" in action else None
+                if pr:
+                    self.state["priority"] = pr
+                    reward += 0.5 if pr == self.true_priority else -0.3
 
-            # resolve
+            # --- resolve ---
             elif action == "resolve":
                 self.state["done"] = True
 
@@ -120,15 +124,18 @@ class EmailTriageEnvironment:
                 self.total_reward += reward
                 self.episodes += 1
 
-            else:
-                reward -= 0.2
-
+            # --- increment step ---
             self.state["step_count"] += 1
 
-            return self._get_obs(), reward, self.state["done"]
+            return self._safe_return(reward, self.state["done"])
 
         except Exception:
-            return self._get_obs(), -1.0, True
+            return self._safe_return(-1.0, True)
+
+    def _safe_return(self, reward, done):
+        reward = round(float(reward), 2)
+        reward = max(0.0, min(1.0, reward))
+        return self._get_obs(), reward, bool(done)
 
     def _get_obs(self):
         if self.current_email is None or self.state is None:
@@ -143,6 +150,8 @@ class EmailTriageEnvironment:
             "sender": self.current_email.get("sender", ""),
             "language": "hi-en" if "ho raha" in self.current_email.get("body", "") else "en",
 
+            "stage": self._get_stage(),
+
             "analyzed": self.state.get("analyzed"),
             "analysis": self.state.get("analysis"),
             "category": self.state.get("category"),
@@ -154,14 +163,23 @@ class EmailTriageEnvironment:
             "valid_actions": self._get_valid_actions()
         }
 
+    def _get_stage(self):
+        if not self.state.get("analyzed"):
+            return "analyze"
+        if self.state.get("category") is None:
+            return "classify"
+        if self.state.get("priority") is None:
+            return "priority"
+        return "resolve"
+
     def _get_valid_actions(self):
         if self.state is None:
             return ["analyze"]
 
-        if not self.state["analyzed"]:
+        if not self.state.get("analyzed"):
             return ["analyze"]
 
-        if self.state["category"] is None:
+        if self.state.get("category") is None:
             return [
                 "classify_urgent",
                 "classify_billing",
@@ -170,7 +188,7 @@ class EmailTriageEnvironment:
                 "classify_info"
             ]
 
-        if self.state["priority"] is None:
+        if self.state.get("priority") is None:
             return [
                 "set_priority_high",
                 "set_priority_medium",
