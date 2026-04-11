@@ -1,26 +1,41 @@
-from server.email_triage_env import EmailTriageEnvironment
+def grader_fn(trajectory):
+    try:
+        if not trajectory:
+            return 0.0
+        
+        # safe extraction
+        rewards = trajectory.get("rewards", [])
+        final_obs = trajectory.get("final_obs", {})
 
-def grader_fn(obs):
-    return (
-        obs.get("category") is not None and
-        obs.get("priority") is not None and
-        obs.get("done") is True
-    )
+        success = (
+            final_obs.get("category") is not None and
+            final_obs.get("priority") is not None and
+            final_obs.get("done") is True
+        )
+
+        if success:
+            return 1.0
+        
+        return float(sum(rewards) / len(rewards)) if rewards else 0.0
+
+    except Exception:
+        return 0.0
+
 
 TASKS = [
     {
-        "name": "task_1",
-        "env": EmailTriageEnvironment,
+        "id": "task_1",
+        "env": "v1",
         "grader": grader_fn,
     },
     {
-        "name": "task_2",
-        "env": EmailTriageEnvironment,
+        "id": "task_2",
+        "env": "v1",
         "grader": grader_fn,
     },
     {
-        "name": "task_3",
-        "env": EmailTriageEnvironment,
+        "id": "task_3",
+        "env": "v1",
         "grader": grader_fn,
     },
 ]
