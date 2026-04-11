@@ -3,7 +3,6 @@ def grader_fn(trajectory):
         if not trajectory:
             return 0.0
         
-        # safe extraction
         rewards = trajectory.get("rewards", [])
         final_obs = trajectory.get("final_obs", {})
 
