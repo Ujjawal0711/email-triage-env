@@ -1,1 +1,4 @@
-from .tasks.tasks import TASKS
+from .tasks import TASKS
+
+__all__ = ["TASKS"]
+print("LOADED TASKS:", len(TASKS))
