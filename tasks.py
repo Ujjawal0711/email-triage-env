@@ -25,37 +25,22 @@ TASKS = [
     {
         "id": "task_1",
         "env": "v1",
-        "input": {
-            "email": "Win a free iPhone now!!! Click here"
-        },
-        "expected": {
-            "category": "spam",
-            "priority": "low"
-        },
+        "input": {"email": "Win a free iPhone!!!"},
+        "expected": {"category": "spam", "priority": "low"},
         "grader": grader_fn,
     },
     {
         "id": "task_2",
         "env": "v1",
-        "input": {
-            "email": "Reminder: Project deadline tomorrow"
-        },
-        "expected": {
-            "category": "important",
-            "priority": "high"
-        },
+        "input": {"email": "Meeting tomorrow"},
+        "expected": {"category": "important", "priority": "high"},
         "grader": grader_fn,
     },
     {
         "id": "task_3",
         "env": "v1",
-        "input": {
-            "email": "Hey, are we still meeting for lunch?"
-        },
-        "expected": {
-            "category": "normal",
-            "priority": "medium"
-        },
+        "input": {"email": "Lunch?"},
+        "expected": {"category": "normal", "priority": "medium"},
         "grader": grader_fn,
     },
 ]
