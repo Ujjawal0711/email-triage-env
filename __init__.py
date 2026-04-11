@@ -1,23 +1,38 @@
-def grader_fn(trajectory):
+def grader_fn(*args):
     try:
-        if not isinstance(trajectory, dict):
+        # --- Case 1: Hackathon validator (output, expected) ---
+        if len(args) == 2:
+            output, expected = args
+
+            if not isinstance(output, dict) or not isinstance(expected, dict):
+                return 0.0
+
+            if (
+                output.get("category") == expected.get("category") and
+                output.get("priority") == expected.get("priority")
+            ):
+                return 1.0
+
             return 0.0
 
-        final_obs = trajectory.get("final_obs", {})
-        rewards = trajectory.get("rewards", [])
+        # --- Case 2: RL trajectory ---
+        if len(args) == 1:
+            trajectory = args[0]
 
-        # Success condition
-        if (
-            isinstance(final_obs, dict) and
-            final_obs.get("category") is not None and
-            final_obs.get("priority") is not None and
-            final_obs.get("done") is True
-        ):
-            return 1.0
+            if not isinstance(trajectory, dict):
+                return 0.0
 
-        # Fallback: average reward if available
-        if isinstance(rewards, list) and len(rewards) > 0:
-            return float(sum(rewards) / len(rewards))
+            final_obs = trajectory.get("final_obs", {})
+
+            if (
+                isinstance(final_obs, dict) and
+                final_obs.get("category") is not None and
+                final_obs.get("priority") is not None and
+                final_obs.get("done") is True
+            ):
+                return 1.0
+
+            return 0.0
 
         return 0.0
 
