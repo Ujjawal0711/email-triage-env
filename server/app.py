@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 print("✅ CORRECT ENV LOADED")
 from pydantic import BaseModel
 from typing import Optional
-from server.email_triage_env import EmailTriageEnvironment
+from email_triage_env.server.email_triage_env import EmailTriageEnvironment
 import uvicorn
 import random
 

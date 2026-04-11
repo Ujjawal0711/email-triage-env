@@ -1,5 +1,8 @@
 import os
-from server.email_triage_env import EmailTriageEnvironment
+import sys
+
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+from email_triage_env.server.email_triage_env import EmailTriageEnvironment
 
 TASK_NAME = "email-triage"
 BENCHMARK = "v1"
@@ -24,7 +27,7 @@ while not done and steps < 5:
     try:
         valid_actions = obs.get("valid_actions", ["analyze"])
 
-        # ✅ deterministic action selection (CRITICAL)
+        #deterministic action selection (CRITICAL)
         action = valid_actions[0] if valid_actions else "analyze"
 
         obs, reward, done = env.step(action)

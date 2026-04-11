@@ -1,5 +1,8 @@
 import random
 
+from email_triage_env.tasks import TASKS  # (safe even if unused)
+
+
 EMAILS = [
     {"subject": "URGENT: Production server down!", "body": "Server crashed. Fix ASAP.", "sender": "ops@company.com", "category": "urgent", "priority": "high"},
     {"subject": "Invoice overdue", "body": "Payment pending ₹4999", "sender": "billing@saas.io", "category": "billing", "priority": "medium"},
@@ -20,7 +23,7 @@ class EmailTriageEnvironment:
         self.max_steps = 5
 
     def reset(self):
-        self.current_email = random.choice(EMAILS) or {}
+        self.current_email = random.choice(EMAILS)
 
         self.true_category = self.current_email.get("category", "")
         self.true_priority = self.current_email.get("priority", "")
@@ -38,11 +41,9 @@ class EmailTriageEnvironment:
 
     def step(self, action):
         try:
-            # --- ensure env initialized ---
             if self.current_email is None or self.state is None:
                 self.reset()
 
-            # --- normalize input ---
             if isinstance(action, dict):
                 action = action.get("action")
 
@@ -54,25 +55,21 @@ class EmailTriageEnvironment:
 
             reward = -0.05
 
-            # --- step limit ---
             if self.state["step_count"] >= self.max_steps:
                 self.state["done"] = True
                 return self._safe_return(-1.0, True)
 
             valid_actions = self._get_valid_actions()
 
-            # --- invalid action ---
             if action not in valid_actions:
                 return self._safe_return(-0.1, False)
 
-            # --- penalties for wrong order ---
             if action.startswith("classify") and not self.state["analyzed"]:
                 reward -= 0.7
 
             if action.startswith("set_priority") and self.state["category"] is None:
                 reward -= 0.7
 
-            # --- analyze ---
             if action == "analyze":
                 if not self.state["analyzed"]:
                     self.state["analyzed"] = True
@@ -95,21 +92,16 @@ class EmailTriageEnvironment:
                 else:
                     reward -= 0.2
 
-            # --- classify ---
             elif action.startswith("classify"):
-                pred = action.split("_")[1] if "_" in action else None
-                if pred:
-                    self.state["category"] = pred
-                    reward += 0.5 if pred == self.true_category else -0.5
+                pred = action.split("_")[1]
+                self.state["category"] = pred
+                reward += 0.5 if pred == self.true_category else -0.5
 
-            # --- set priority ---
             elif action.startswith("set_priority"):
-                pr = action.split("_")[-1] if "_" in action else None
-                if pr:
-                    self.state["priority"] = pr
-                    reward += 0.5 if pr == self.true_priority else -0.3
+                pr = action.split("_")[-1]
+                self.state["priority"] = pr
+                reward += 0.5 if pr == self.true_priority else -0.3
 
-            # --- resolve ---
             elif action == "resolve":
                 self.state["done"] = True
 
@@ -124,7 +116,6 @@ class EmailTriageEnvironment:
                 self.total_reward += reward
                 self.episodes += 1
 
-            # --- increment step ---
             self.state["step_count"] += 1
 
             return self._safe_return(reward, self.state["done"])
@@ -149,17 +140,13 @@ class EmailTriageEnvironment:
             "email_body": self.current_email.get("body", ""),
             "sender": self.current_email.get("sender", ""),
             "language": "hi-en" if "ho raha" in self.current_email.get("body", "") else "en",
-
             "stage": self._get_stage(),
-
             "analyzed": self.state.get("analyzed"),
             "analysis": self.state.get("analysis"),
             "category": self.state.get("category"),
             "priority": self.state.get("priority"),
-
             "step_count": self.state.get("step_count"),
             "done": self.state.get("done"),
-
             "valid_actions": self._get_valid_actions()
         }
 
