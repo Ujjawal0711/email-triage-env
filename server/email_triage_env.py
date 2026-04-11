@@ -1,7 +1,6 @@
 import random
 
-from email_triage_env.tasks import TASKS  # (safe even if unused)
-
+from email_triage_env.tasks import TASKS
 
 EMAILS = [
     {"subject": "URGENT: Production server down!", "body": "Server crashed. Fix ASAP.", "sender": "ops@company.com", "category": "urgent", "priority": "high"},
