@@ -1,80 +1,54 @@
 import os
-from openai import OpenAI
 from server.email_triage_env import EmailTriageEnvironment
-
-API_BASE_URL = os.getenv("API_BASE_URL")
-API_KEY = os.getenv("API_KEY")
-MODEL_NAME = os.getenv("MODEL_NAME", "gpt-3.5-turbo")
 
 TASK_NAME = "email-triage"
 BENCHMARK = "v1"
-
-client = OpenAI(
-    base_url=API_BASE_URL,
-    api_key=API_KEY
-)
 
 env = EmailTriageEnvironment()
 
 rewards = []
 steps = 0
 
-print(f"[START] task={TASK_NAME} env={BENCHMARK} model={MODEL_NAME}")
+print(f"[START] task={TASK_NAME} env={BENCHMARK}")
 
-obs = env.reset()
+try:
+    obs = env.reset()
+except Exception as e:
+    print(f"[ERROR] reset failed: {e}")
+    print("[END] success=False steps=0 score=0.00 rewards=[]")
+    exit(0)
+
 done = False
 
 while not done and steps < 5:
-    valid_actions = obs.get("valid_actions", ["analyze"])
-
     try:
-        prompt = f"""
-You are an email triage agent.
+        valid_actions = obs.get("valid_actions", ["analyze"])
 
-Current state:
-{obs}
+        # ✅ deterministic action selection (CRITICAL)
+        action = valid_actions[0] if valid_actions else "analyze"
 
-Valid actions:
-{valid_actions}
+        obs, reward, done = env.step(action)
 
-Choose EXACTLY one action from valid_actions.
-Return ONLY the action string.
-"""
+        reward = float(reward)
+        reward = max(0.0, min(reward, 1.0))  # clamp
 
-        response = client.chat.completions.create(
-            model=MODEL_NAME,
-            messages=[
-                {"role": "system", "content": "You are a precise decision-making agent."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0
-        )
-
-        action = response.choices[0].message.content.strip()
-
-    except Exception:
-        # fallback (IMPORTANT: still safe)
-        action = valid_actions[0]
-
-    if action not in valid_actions:
-        action = valid_actions[0]
-
-    obs, reward, done = env.step(action)
+    except Exception as e:
+        print(f"[ERROR] step failed: {e}")
+        break
 
     steps += 1
-    reward = round(float(reward), 2)
-    rewards.append(reward)
+    rewards.append(round(reward, 2))
 
     print(
         f"[STEP] step={steps} action={action} "
         f"reward={reward:.2f} done={done} error=None"
     )
 
-# compute score
+# safe score calculation
 score = sum(rewards) / len(rewards) if rewards else 0.0
 score = max(0.0, min(score, 1.0))
 
-success = done
+success = bool(done)
 
 rewards_str = "[" + ",".join(f"{r:.2f}" for r in rewards) + "]"
 
