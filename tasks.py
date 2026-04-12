@@ -5,18 +5,21 @@ TASKS = [
         "id": "task_1",
         "env": "email_triage_env",
         "input": {"email": "Win a free iPhone!!!"},
+        "ground_truth": {"category": "spam", "priority": "low"},
         "grader": email_grader,
     },
     {
         "id": "task_2",
         "env": "email_triage_env",
-        "input": {"email": "Meeting tomorrow"},
+        "input": {"email": "Production server is down ASAP!"},
+        "ground_truth": {"category": "urgent", "priority": "high"},
         "grader": email_grader,
     },
     {
         "id": "task_3",
         "env": "email_triage_env",
-        "input": {"email": "Lunch?"},
+        "input": {"email": "Invoice overdue payment pending"},
+        "ground_truth": {"category": "billing", "priority": "medium"},
         "grader": email_grader,
     },
 ]

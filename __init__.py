@@ -1,4 +1,5 @@
 from email_triage_env.graders import email_grader
+from .tasks import TASKS
 
 TASKS = [
     {

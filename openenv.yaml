@@ -1,0 +1,19 @@
+name: email-triage-env
+version: 0.1.0
+
+tasks:
+  entry_point: email_triage_env.tasks:TASKS
+
+envs:
+  v1:
+    entry_point: email_triage_env.server.email_triage_env:EmailTriageEnvironment
+
+description: >
+  A bilingual email triage environment.
+
+categories:
+  - workflow
+  - nlp
+
+action: EmailTriageAction
+observation: EmailTriageObservation
