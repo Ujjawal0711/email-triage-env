@@ -4,6 +4,7 @@ WORKDIR /app
 
 COPY . .
 
+RUN pip install --no-cache-dir -e .
 RUN pip install --no-cache-dir -r server/requirements.txt
 
 EXPOSE 7860

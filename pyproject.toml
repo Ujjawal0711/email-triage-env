@@ -10,5 +10,18 @@ dependencies = [
     "openenv-core>=0.2.0"
 ]
 
+[tool.setuptools.packages.find]
+include = ["email_triage_env*"]
+
+[project.entry-points."openenv.tasks"]
+tasks = "email_triage_env.tasks:TASKS"
+
+[project.entry-points."openenv.envs"]
+v1 = "email_triage_env.server.email_triage_env:EmailTriageEnvironment"
+
 [project.scripts]
 server = "server.app:main"
+
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.backends.legacy:build"
