@@ -5,7 +5,6 @@
 ![Docker](https://img.shields.io/badge/docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square)
 ---
-Overview
 `email-triage-env` is an OpenEnv-compatible reinforcement learning environment that simulates a real-world customer support email routing system.
 An RL agent receives an inbound email as an observation and must act as an intelligent routing system — predicting both the category and the priority of the email.
 The key differentiator: the dataset is bilingual, covering both English and Hinglish (Hindi-English code-switching), making this environment uniquely relevant for AI systems deployed in the Indian tech ecosystem. Most NLP benchmarks and RL environments are English-only. This project challenges that by forcing agents to generalize across languages that real users actually write in.
