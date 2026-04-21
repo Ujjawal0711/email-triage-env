@@ -129,6 +129,7 @@ Docker — containerized deployment
 ---
 Author
 Ujjawal Chaudhary — B.Tech Computer Science
+
 ![GitHub](https://img.shields.io/badge/GitHub-Ujjawal0711-181717?style=flat-square&logo=github)
 ![LinkedIn](https://img.shields.io/badge/LinkedIn-Ujjawal--Chaudhary-0A66C2?style=flat-square&logo=linkedin)
 ---
