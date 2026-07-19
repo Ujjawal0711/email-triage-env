@@ -156,5 +156,5 @@ Docker — containerized deployment
 
 **Ujjawal Chaudhary** — B.Tech Computer Science
 
-[GitHub](https://github.com/Ujjawal0711) · [LinkedIn](https://www.linkedin.com/in/ujjawal-chaudhary)
+[GitHub](https://github.com/Ujjawal0711) · [LinkedIn](https://www.linkedin.com/in/ujjawal-chaudhary-24a37031b/)
 ---
