@@ -152,9 +152,9 @@ Pydantic — typed observation/action schemas
 OpenEnv — RL environment spec
 Docker — containerized deployment
 ---
-Author
-Ujjawal Chaudhary — B.Tech Computer Science
+## Author
 
-![GitHub](https://img.shields.io/badge/GitHub-Ujjawal0711-181717?style=flat-square&logo=github)
-![LinkedIn](https://img.shields.io/badge/LinkedIn-Ujjawal--Chaudhary-0A66C2?style=flat-square&logo=linkedin)
+**Ujjawal Chaudhary** — B.Tech Computer Science
+
+[GitHub](https://github.com/Ujjawal0711) · [LinkedIn](https://www.linkedin.com/in/ujjawal-chaudhary)
 ---
