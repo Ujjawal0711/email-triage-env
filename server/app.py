@@ -1,8 +1,9 @@
 from fastapi import FastAPI, Request
-print("✅ CORRECT ENV LOADED")
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from typing import Optional
 from email_triage_env.server.email_triage_env import EmailTriageEnvironment
+from email_triage_env.server.demo_page import DEMO_HTML
 import uvicorn
 import random
 
@@ -15,8 +16,15 @@ class StepRequest(BaseModel):
     action: Optional[str] = None
 
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 def home():
+    # Interactive web demo (drives /reset, /step, /evaluate). The plain JSON
+    # health check lives at /health for the RL harness / uptime probes.
+    return DEMO_HTML
+
+
+@app.get("/health")
+def health():
     return {"message": "Email Triage RL Env Running"}
 
 
