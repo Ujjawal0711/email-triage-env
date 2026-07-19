@@ -1,23 +1,10 @@
-from email_triage_env.graders import email_grader
-from .tasks import TASKS
+"""email_triage_env package.
 
-TASKS = [
-    {
-        "id": "task_1",
-        "env": "email_triage_env",
-        "input": {"email": "Win a free iPhone!!!"},
-        "grader": email_grader,
-    },
-    {
-        "id": "task_2",
-        "env": "email_triage_env",
-        "input": {"email": "Meeting tomorrow"},
-        "grader": email_grader,
-    },
-    {
-        "id": "task_3",
-        "env": "email_triage_env",
-        "input": {"email": "Lunch?"},
-        "grader": email_grader,
-    },
-]
+Re-export the canonical task list (with ground truth + grader bindings)
+defined in tasks.py so ``from email_triage_env import TASKS`` works.
+"""
+
+from email_triage_env.graders import email_grader
+from email_triage_env.tasks import TASKS
+
+__all__ = ["TASKS", "email_grader"]

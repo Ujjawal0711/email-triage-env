@@ -15,3 +15,9 @@ class EmailTriageObservation(Observation):
 
     step_count: int
     done: bool
+
+    # Fields the environment also emits in its observation dict. Kept optional
+    # so the model stays constructible from a partial/uninitialized observation.
+    stage: str | None = None
+    analysis: str | None = None
+    valid_actions: list[str] = []

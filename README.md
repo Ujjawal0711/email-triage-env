@@ -24,6 +24,13 @@ Example Tasks
 ```
 ---
 Reward Function
+There are two reward layers:
+- **Grader (trajectory score)** — used by the task list in `tasks.py` to score an
+  agent's final output against ground truth (table below).
+- **Environment (dense shaping)** — `env.step(...)` also returns a shaped reward
+  every step (positive for correct/in-order actions, negative for wrong or
+  out-of-order ones), clamped to `[-1.0, 1.0]` to give RL agents a usable signal.
+
 The grader evaluates the agent's trajectory output against ground truth:
 Outcome	Score
 Correct category AND priority	`+1.0`
@@ -41,6 +48,7 @@ email-triage-env/
 │   └── client.py             # HTTP client for the environment server
 ├── graders.py                # Dual-mode grader function
 ├── tasks.py                  # TASKS list with ground truth + grader bindings
+├── tests/test_env.py         # Self-contained smoke/regression tests
 ├── models.py                 # Re-exports from server/models.py
 ├── client.py                 # Re-exports from server/client.py
 ├── openenv.yaml              # OpenEnv spec (entry points, categories, schema)
@@ -71,16 +79,28 @@ docker run -p 8000:8000 email-triage-env
 3. Use the environment directly
 ```python
 from email_triage_env.server.email_triage_env import EmailTriageEnvironment
-from email_triage_env.server.models import EmailTriageAction
 
 env = EmailTriageEnvironment()
-obs = env.reset(options={"email": "Mera bill kyun double aaya? Please help!"})
 
-action = EmailTriageAction(category="billing", priority="high")
-obs, reward, done, info = env.step(action)
+# reset() returns an observation dict. With no args it picks a random labeled
+# email; pass options to drive a specific one:
+obs = env.reset(options={"email": {
+    "subject": "Mera bill kyun double aaya?",
+    "body": "Please help!",
+    "category": "billing",
+    "priority": "high",
+}})
 
-print(f"Reward: {reward}")  # 1.0, 0.5, or 0.0
+# The env is a sequential pipeline driven by string actions. Each step returns
+# a 3-tuple: (observation, reward, done). obs["valid_actions"] lists the legal
+# next actions at every stage.
+for action in ["analyze", "classify_billing", "set_priority_high", "resolve"]:
+    obs, reward, done = env.step(action)
+    print(f"{action:20s} reward={reward:+.2f} done={done}")
 ```
+
+> Rewards are dense and shaped: correct steps are positive, wrong or
+> out-of-order actions are negative (clamped to the range `[-1.0, 1.0]`).
 4. Run the grader manually
 ```python
 from email_triage_env.graders import email_grader
@@ -91,6 +111,12 @@ ground_truth = {"category": "billing", "priority": "high"}
 result = email_grader(trajectory, ground_truth)
 print(result)  # {"score": 1.0}
 ```
+5. Run the tests
+```bash
+python tests/test_env.py   # or: pytest tests/
+```
+The suite is self-contained (no `openenv` install required) and guards the
+environment's reward shaping, reset behaviour, language detection, and grader.
 ---
 OpenEnv Integration
 This environment is fully spec-compliant with OpenEnv. The `openenv.yaml` registers:

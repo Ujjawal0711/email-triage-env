@@ -1,5 +1,5 @@
 from openenv.core.env_client import EnvClient
-from models import EmailTriageAction, EmailTriageObservation
+from email_triage_env.server.models import EmailTriageAction, EmailTriageObservation
 
 class EmailTriageEnv(EnvClient):
     action_class = EmailTriageAction

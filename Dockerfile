@@ -5,8 +5,7 @@ WORKDIR /app
 COPY . .
 
 RUN pip install --no-cache-dir -e .
-RUN pip install --no-cache-dir -r server/requirements.txt
 
 EXPOSE 7860
 
-CMD ["uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["uvicorn", "email_triage_env.server.app:app", "--host", "0.0.0.0", "--port", "7860"]

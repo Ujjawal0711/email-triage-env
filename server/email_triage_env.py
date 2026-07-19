@@ -1,7 +1,5 @@
 import random
 
-from email_triage_env.tasks import TASKS
-
 EMAILS = [
     {"subject": "URGENT: Production server down!", "body": "Server crashed. Fix ASAP.", "sender": "ops@company.com", "category": "urgent", "priority": "high"},
     {"subject": "Invoice overdue", "body": "Payment pending ₹4999", "sender": "billing@saas.io", "category": "billing", "priority": "medium"},
@@ -21,8 +19,8 @@ class EmailTriageEnvironment:
         self.episodes = 0
         self.max_steps = 5
 
-    def reset(self):
-        self.current_email = random.choice(EMAILS)
+    def reset(self, options=None):
+        self.current_email = self._select_email(options)
 
         self.true_category = self.current_email.get("category", "")
         self.true_priority = self.current_email.get("priority", "")
@@ -37,6 +35,45 @@ class EmailTriageEnvironment:
         }
 
         return self._get_obs()
+
+    def _select_email(self, options):
+        """Pick the email for this episode.
+
+        Accepts an optional ``options`` dict so callers (and the task list)
+        can drive a specific email instead of always getting a random one:
+          - ``{"email": "some text"}``           -> matched against EMAILS, else
+                                                     wrapped as an unlabeled email
+          - ``{"email": {...labeled dict...}}``  -> used directly
+        With no options a random labeled email is chosen (default behaviour).
+        """
+        if isinstance(options, dict) and options.get("email") is not None:
+            email = options["email"]
+            if isinstance(email, dict):
+                return email
+            if isinstance(email, str):
+                matched = self._match_email(email)
+                if matched is not None:
+                    return matched
+                return {
+                    "subject": email,
+                    "body": "",
+                    "sender": "",
+                    "category": options.get("category", ""),
+                    "priority": options.get("priority", ""),
+                }
+        return random.choice(EMAILS)
+
+    @staticmethod
+    def _match_email(text):
+        """Return a known labeled email whose subject/body matches ``text``."""
+        needle = text.strip().lower()
+        if not needle:
+            return None
+        for email in EMAILS:
+            haystack = (email.get("subject", "") + " " + email.get("body", "")).lower()
+            if needle in haystack or haystack in needle:
+                return email
+        return None
 
     def step(self, action):
         try:
@@ -123,8 +160,12 @@ class EmailTriageEnvironment:
             return self._safe_return(-1.0, True)
 
     def _safe_return(self, reward, done):
+        # Clamp to [-1, 1], NOT [0, 1]: the shaping above deliberately emits
+        # negative rewards for wrong classifications, out-of-order actions and
+        # timeouts. Clamping to [0, 1] would erase every penalty and leave the
+        # agent with no signal to learn from.
         reward = round(float(reward), 2)
-        reward = max(0.0, min(1.0, reward))
+        reward = max(-1.0, min(1.0, reward))
         return self._get_obs(), reward, bool(done)
 
     def _get_obs(self):
@@ -138,7 +179,7 @@ class EmailTriageEnvironment:
             "email_subject": self.current_email.get("subject", ""),
             "email_body": self.current_email.get("body", ""),
             "sender": self.current_email.get("sender", ""),
-            "language": "hi-en" if "ho raha" in self.current_email.get("body", "") else "en",
+            "language": self._detect_language(),
             "stage": self._get_stage(),
             "analyzed": self.state.get("analyzed"),
             "analysis": self.state.get("analysis"),
@@ -148,6 +189,29 @@ class EmailTriageEnvironment:
             "done": self.state.get("done"),
             "valid_actions": self._get_valid_actions()
         }
+
+    # A few common Hinglish (romanized Hindi) tokens. Enough to flag the
+    # code-switched emails this environment is built around, instead of the
+    # previous single hard-coded "ho raha" check.
+    _HINGLISH_TOKENS = (
+        "bhai", "yaar", "kar", "raha", "raha", "gaya", "gayi", "kyun", "kyu",
+        "mera", "meri", "hai", "nahi", "kaise", "please help", "diya", "aaya",
+        "karo", "abhi", "pls", "ho raha",
+    )
+
+    def _detect_language(self):
+        text = (
+            self.current_email.get("subject", "") + " " +
+            self.current_email.get("body", "")
+        ).lower()
+        words = set(text.replace("?", " ").replace("!", " ").split())
+        for token in self._HINGLISH_TOKENS:
+            if " " in token:
+                if token in text:
+                    return "hi-en"
+            elif token in words:
+                return "hi-en"
+        return "en"
 
     def _get_stage(self):
         if not self.state.get("analyzed"):
